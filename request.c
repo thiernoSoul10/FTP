@@ -50,9 +50,11 @@ response_t requestHandler(int connfd){
 
     if(strcmp(cmd, "GET") == 0)
         res = filereader(connfd, arg);
-    else if(strcmp(cmd, "PUT"))
+    else if(strcmp(cmd, "PUT") == 0)
         res.code = ERREUR;
-    else if(strcmp(cmd, "LS"))
+    else if(strcmp(cmd, "LS") == 0)
+        res.code = ERREUR;
+    else 
         res.code = ERREUR;
 
     return res;

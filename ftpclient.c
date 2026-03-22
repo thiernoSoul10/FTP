@@ -1,19 +1,22 @@
 #include "csapp.h"
 
 static int port = 2121;
+#define DIR_CLIENT "dirClient/"
 
 int main(int argc, char **argv)
 {
     int clientfd;
     FILE *fout;
-    char *host, buf[MAXLINE], *filename;
+    char *host, buf[MAXLINE];
+    char filename[512];
     rio_t rio;
 
     if (argc != 2) {
         fprintf(stderr, "usage: %s <host>\n", argv[0]);
         exit(0);
     }
-    filename = "dirClient/out";
+    strcpy(filename, DIR_CLIENT);
+    strcat(filename, "out");
     host = argv[1];
     fout = fopen(filename, "wb");
     if(fout == NULL){
