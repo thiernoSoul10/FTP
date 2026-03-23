@@ -3,20 +3,25 @@
 #include "request.h"
 #include "filereader.h"
 
-request_t* init_request(typereq_t type, char *nom){
-    request_t *r = (request_t *) malloc(sizeof(request_t));
+request_t* init_request(typereq_t type, char nom[256]){
+    request_t *r = (request_t *) calloc(1, sizeof(request_t));
+    if (!r) return NULL;
 
     r->type = type;
-    r->nom = strdup(nom);
+    if (nom) {
+        strncpy(r->nom, nom, 255);
+        r->nom[255] = '\0';
+    }
 
     return r;
 }
 
 void setType(request_t *r, typereq_t t){ if(r != NULL) r->type = t;}
+
 void setNom(request_t *r, char *nom){
     if(r == NULL || nom == NULL) return;
-    free(r->nom);    
-    r->nom = strdup(nom);
+    strncpy(r->nom, nom, 255);
+    r->nom[255] = '\0';
 }
 
 typereq_t getType(request_t *r){ 
@@ -31,28 +36,24 @@ char* getNom(request_t *r){
 
 response_t requestHandler(int connfd){
     size_t n;
-    char buf[MAXLINE];
     rio_t rio;
-    char cmd[5], arg[256];
+    request_t req;
     response_t res;
 
     Rio_readinitb(&rio, connfd);
 
-    if ((n = Rio_readlineb(&rio, buf, MAXLINE)) <= 0){
+    // lecture directe de la structure 
+    if ((n = Rio_readnb(&rio, &req, sizeof(request_t))) <= 0){
         res.code = ERREUR;
         return res;
     }
 
-    /* enlever le \n */
-    buf[strcspn(buf, "\n")] = '\0';
-
-    sscanf(buf, "%s %s", cmd, arg);
-
-    if(strcmp(cmd, "GET") == 0)
-        res = filereader(connfd, arg);
-    else if(strcmp(cmd, "PUT") == 0)
+    if(req.type == GET) {
+        res = filereader(connfd, getNom(&req));
+    }
+    else if(req.type == PUT)
         res.code = ERREUR;
-    else if(strcmp(cmd, "LS") == 0)
+    else if(req.type == LS)
         res.code = ERREUR;
     else 
         res.code = ERREUR;

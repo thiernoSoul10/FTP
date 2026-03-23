@@ -12,10 +12,10 @@ typedef  struct request request_t;
 struct request{
     /* data */
     typereq_t type;
-    char *nom;
+    char nom[256];
 };
 
-request_t* init_request(typereq_t type, char *nom);
+request_t* init_request(typereq_t type, char nom[256]);
 
 void setType(request_t *r, typereq_t t);
 void setNom(request_t *r, char *nom);
