@@ -4,6 +4,7 @@
 
 static int port = 2121;
 #define DIR_CLIENT "dirClient/"
+#define BLOCK_SIZE 512
 
 int main(int argc, char **argv)
 {
@@ -40,12 +41,21 @@ int main(int argc, char **argv)
     
     Rio_readinitb(&rio, clientfd); // initialise le buffer rio sur le socket client 
 
-    if (Fgets(buf, MAXLINE, stdin) != NULL) { // lit une ligne depuis le clavier 
+    while (Fgets(buf, MAXLINE, stdin) != NULL) { // lit une ligne depuis le clavier jusqu'à EOF ou bye 
         
-        buf[strcspn(buf, "\n")] = '\0'; // enlever le retour à la ligne 
+        buf[strcspn(buf, "\r\n")] = '\0'; // enlever le retour à la ligne (Windows ou Linux)
         
+        int parsed = sscanf(buf, "%s %s", cmd, arg);
         
-        if (sscanf(buf, "%s %s", cmd, arg) == 2) { // découper la saise 
+        // commande bye donc on prévient le serveur puis on quitte
+        if (parsed >= 1 && strcmp(cmd, "bye") == 0) {
+            request_t req;
+            req.type = BYE;
+            Rio_writen(clientfd, &req, sizeof(request_t));
+            break;
+        }
+        
+        if (parsed == 2) { // découper la saise 
             request_t req;
             if (strcmp(cmd, "get") == 0 || strcmp(cmd, "GET") == 0) { // vérifier que la commande est bien "GET" ou "get"
                 req.type = GET;
@@ -69,15 +79,25 @@ int main(int argc, char **argv)
                         } else {
                             // on calcule le temps de téléchargement c'est à dire le temps entre le premiere octet reçu et le dernier 
                             struct timeval start, end;
-                            size_t n;
+                            ssize_t n;
                             size_t total_bytes = 0;
                             
                             gettimeofday(&start, NULL); // enregistre l'heure de début
                             
-                            while ((n = Rio_readnb(&rio, buf, MAXLINE)) > 0) {
-                                fwrite(buf, 1, n, fout);
-                                total_bytes += n; // On compte les octets reçus
+                            // Reception de nombre de blocs envoyé par le serveur 
+                            size_t nb_blocs;
+                            Rio_readnb(&rio, &nb_blocs, sizeof(size_t));
+
+                            char bloc[BLOCK_SIZE];
+
+                            // on lit nb_blocs blocs
+                            for (size_t i = 0; i < nb_blocs; i++) {
+                                
+                                n = Rio_readnb(&rio, bloc, BLOCK_SIZE); // nombre d'octets lus dans le bloc courant 
+                                fwrite(bloc, 1, n, fout);
+                                total_bytes += n;
                             }
+
                             fclose(fout);
                             
                             gettimeofday(&end, NULL); // arret chrono 

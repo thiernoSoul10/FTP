@@ -35,28 +35,24 @@ char* getNom(request_t *r){
 }
 
 response_t requestHandler(int connfd){
-    size_t n;
+    ssize_t n;
     rio_t rio;
     request_t req;
     response_t res;
 
     Rio_readinitb(&rio, connfd);
 
-    // lecture directe de la structure 
-    if ((n = Rio_readnb(&rio, &req, sizeof(request_t))) <= 0){
-        res.code = ERREUR;
-        return res;
+    // boucle jusqu'à BYE ou déconnexion
+    while ((n = Rio_readnb(&rio, &req, sizeof(request_t))) > 0) {
+        if (req.type == GET) {
+            res = filereader(connfd, getNom(&req));
+        } else if (req.type == BYE) {
+            res.code = SUCCES;
+            break;
+        } else {
+            res.code = ERREUR;
+        }
     }
-
-    if(req.type == GET) {
-        res = filereader(connfd, getNom(&req));
-    }
-    else if(req.type == PUT)
-        res.code = ERREUR;
-    else if(req.type == LS)
-        res.code = ERREUR;
-    else 
-        res.code = ERREUR;
 
     return res;
 }
