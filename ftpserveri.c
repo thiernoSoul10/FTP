@@ -9,10 +9,9 @@ static pid_t workers[NB_PROC]; // tableau qui stocke les pids des fils
 
 // Handler 1 : Appeler quand un fils termine 
 void child_handler(int sig){
-    int saved_errno = errno;
-    // On utilise waitpid (minuscule) pour ne pas appeler unix_error si ECHILD
-    while (waitpid(-1, NULL, WNOHANG) > 0);
-    errno = saved_errno;
+    while (Waitpid(-1, NULL, WNOHANG) > 0); 
+    // Sans WNOHANG => le serveur s'arrete est attend qu'un fils meure 
+    // Option qui dit à Waitpid ne bloque pas, si aucun fils n'est mort reviens immédiatement 
 }
 
 void parent_stop_handler(int sig){
@@ -41,7 +40,6 @@ int main(int argc, char **argv)
     
     Signal(SIGCHLD, child_handler); 
     Signal(SIGINT, parent_stop_handler);
-    Signal(SIGPIPE, SIG_IGN);
     
     clientlen = (socklen_t)sizeof(clientaddr);
 

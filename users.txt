@@ -1,4 +1,0 @@
-Iyed:1234
-Admin:password
-Souleymane:secret
-user:121314

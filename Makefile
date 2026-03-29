@@ -14,10 +14,10 @@ SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
 
 # Exécutables
-PROGS = ftpserveri ftpclient ftpmaster ftpslave
+PROGS = ftpserveri ftpclient
 
 # Exclure les fichiers contenant main
-COMMON_OBJS = $(filter-out ftpserveri.o ftpclient.o ftpmaster.o ftpslave.o,$(OBJS))
+COMMON_OBJS = $(filter-out ftpserveri.o ftpclient.o,$(OBJS))
 
 all: $(PROGS)
 
@@ -25,12 +25,6 @@ ftpserveri: ftpserveri.o $(COMMON_OBJS)
 	$(CC) -o $@ $^ $(LIBS)
 
 ftpclient: ftpclient.o $(COMMON_OBJS)
-	$(CC) -o $@ $^ $(LIBS)
-
-ftpmaster: ftpmaster.o $(COMMON_OBJS)
-	$(CC) -o $@ $^ $(LIBS)
-
-ftpslave: ftpslave.o $(COMMON_OBJS)
 	$(CC) -o $@ $^ $(LIBS)
 
 %.o: %.c
