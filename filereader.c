@@ -9,7 +9,7 @@
 #define BLOCK_SIZE 512
 
 
-response_t filereader(int connfd, char fichier[256])
+response_t filereader(int connfd, char fichier[256], size_t bloc_debut)
 {
     
     int fd; // file descriptor du fichier à lire 
@@ -31,14 +31,19 @@ response_t filereader(int connfd, char fichier[256])
     res.code = SUCCES;
     Rio_writen(connfd, &res, sizeof(res));
 
-    // Calculer la taille de fichier : 
-        size_t file_size = lseek(fd, 0, SEEK_END);
-        lseek(fd, 0, SEEK_SET);
     
-    // Calculer et envoyer le nombre de blocs : 
-        size_t nb_blocs = (file_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        Rio_writen(connfd, &nb_blocs, sizeof(size_t));
+    size_t file_size = lseek(fd, 0, SEEK_END); // calculer la taille de fichier 
+
     
+    size_t nb_blocs = (file_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // calculer le nombre total de blocs 
+
+    
+    lseek(fd, bloc_debut * BLOCK_SIZE, SEEK_SET); // on se positionne dans le bon bloc 
+
+    
+    size_t nb_blocs_restants = nb_blocs - bloc_debut; // calculer et envoyer le nombre de blocs restants 
+    Rio_writen(connfd, &nb_blocs_restants, sizeof(size_t));
+        
     // Envoyer les blocs : 
 
     char buf[BLOCK_SIZE];
