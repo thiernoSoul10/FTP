@@ -45,7 +45,11 @@ response_t requestHandler(int connfd){
     // boucle jusqu'à BYE ou déconnexion
     while ((n = Rio_readnb(&rio, &req, sizeof(request_t))) > 0) {
         if (req.type == GET) {
-            res = filereader(connfd, getNom(&req));
+            // Q10 : on passe l'offset pour que le serveur reprenne au bon bloc si besoin
+            res = filereader(connfd, getNom(&req), req.offset);
+        } else if (req.type == LS) {
+            // Q15 : lister le contenu du repertoire serveur
+            res = filels(connfd);
         } else if (req.type == BYE) {
             res.code = SUCCES;
             break;

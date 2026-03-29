@@ -53,8 +53,11 @@ int main(int argc, char **argv)
         if(p < 0) exit(-3);
 
         if(p == 0){
-            while (1) {   
-                // on attends qu'un client se connecte      
+            // Q10 : on ignore SIGPIPE sinon le fils meurt si le client crashe
+            signal(SIGPIPE, SIG_IGN);
+
+            while (1) {
+                // on attends qu'un client se connecte
                 connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
                 
                 // on affiche les infos du client conecté 

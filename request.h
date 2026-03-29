@@ -13,6 +13,7 @@ struct request{
     /* data */
     typereq_t type;
     char nom[256];
+    size_t offset; // Q10 : nombre de blocs déjà reçus par le client (0 = nouveau téléchargement)
 };
 
 request_t* init_request(typereq_t type, char nom[256]);
